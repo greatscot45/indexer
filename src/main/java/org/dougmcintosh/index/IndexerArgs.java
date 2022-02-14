@@ -18,6 +18,7 @@ public class IndexerArgs {
     private Set<File> inputdirs;
     private File outputdir;
     private File stopwordsFile;
+    private Optional<File> optEnhanceFile;
     private final boolean recurse;
     private final int workers;
     private final int minTokenLength;
@@ -27,6 +28,7 @@ public class IndexerArgs {
     private IndexerArgs(Set<String> inputDirPaths,
                         String outputdirPath,
                         Optional<String> stopwordsPath,
+                        Optional<String> enhanceFilePath,
                         boolean recurse,
                         Optional<Integer> workers,
                         Optional<Integer> minTokenLength,
@@ -38,6 +40,7 @@ public class IndexerArgs {
         initInputDirs(inputDirPaths);
         initOutputDir(outputdirPath);
         initStopWordsFile(stopwordsPath);
+        initEnhanceFile(enhanceFilePath);
 
         this.recurse = recurse;
         this.minTokenLength = minTokenLength.orElse(DEFAULT_MIN_TOKEN_LENGTH);
@@ -69,6 +72,16 @@ public class IndexerArgs {
         }
     }
 
+    private void initEnhanceFile(Optional<String> enhancePath) {
+        this.optEnhanceFile = Optional.empty();
+
+        if (enhancePath.isPresent()) {
+            final File f = new File(enhancePath.get());
+            this.optEnhanceFile = Optional.of(f);
+            Preconditions.checkState(f.isFile(),"Enhance file doesn't exist or isn't a file.;");
+        }
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -85,6 +98,9 @@ public class IndexerArgs {
         return stopwordsFile;
     }
 
+    public Optional<File> getEnhanceFile() {
+        return optEnhanceFile;
+    }
     public boolean isRecurse() {
         return recurse;
     }
@@ -102,13 +118,14 @@ public class IndexerArgs {
     }
 
     public boolean isPrettyPrint() {
-        return compress;
+        return prettyPrint;
     }
 
     public static class Builder {
         private Set<String> inputdirPaths;
         private String outputdirPath;
         private Optional<String> stopwordsPath = Optional.empty();
+        private Optional<String> enhancePath = Optional.empty();
         private boolean recurse = true;
         private Optional<Integer> workers = Optional.empty();
         private Optional<Integer> minTokenLength = Optional.empty();
@@ -129,6 +146,11 @@ public class IndexerArgs {
 
         public Builder stopwordsPath(Optional<String> stopwordsPath) {
             this.stopwordsPath = stopwordsPath;
+            return this;
+        }
+
+        public Builder enhancePath(Optional<String> enhancePath) {
+            this.enhancePath = enhancePath;
             return this;
         }
 
@@ -159,7 +181,7 @@ public class IndexerArgs {
 
         public IndexerArgs build() {
             return new IndexerArgs(
-                inputdirPaths, outputdirPath, stopwordsPath,
+                inputdirPaths, outputdirPath, stopwordsPath, enhancePath,
                 recurse, workers, minTokenLength, compress, prettyPrint);
         }
     }

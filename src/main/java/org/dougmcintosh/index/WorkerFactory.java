@@ -18,14 +18,18 @@ import java.util.concurrent.TimeUnit;
 public class WorkerFactory implements Closeable {
     private final SynchronizedOutputWriter writer;
     private final int minTokenLength;
+    private final IndexEnhancer enhancer;
 
-    public WorkerFactory(SynchronizedOutputWriter writer, int minTokenLength) throws IOException {
+    public WorkerFactory(SynchronizedOutputWriter writer, IndexerArgs args) throws IOException {
         this.writer = Preconditions.checkNotNull(writer, "Writer is null.");
-        this.minTokenLength = minTokenLength;
+        this.minTokenLength = args.getMinTokenLength();
+        this.enhancer = args.getEnhanceFile().isPresent() ?
+            new IndexEnhancer(args.getEnhanceFile().get()) :
+            IndexEnhancer.NO_OP;
     }
 
     public Worker newWorker(File sourceFile) {
-        return new Worker(writer, sourceFile);
+        return new Worker(writer, enhancer, sourceFile);
     }
 
     @Override
@@ -38,11 +42,13 @@ public class WorkerFactory implements Closeable {
     private class Worker implements Runnable {
         private static final Logger logger = LoggerFactory.getLogger(Worker.class);
         private final SynchronizedOutputWriter writer;
+        private final IndexEnhancer enhancer;
         private final File sourceFile;
         private final Stopwatch stopwatch;
 
-        Worker(SynchronizedOutputWriter writer, File sourceFile) {
+        Worker(SynchronizedOutputWriter writer, IndexEnhancer enhancer, File sourceFile) {
             this.writer = Preconditions.checkNotNull(writer, "Writer is null.");
+            this.enhancer = Preconditions.checkNotNull(enhancer, "Enhancer is null.");
             this.sourceFile = Preconditions.checkNotNull(sourceFile, "Source file is null.");
             this.stopwatch = Stopwatch.createUnstarted();
         }
@@ -55,12 +61,14 @@ public class WorkerFactory implements Closeable {
                 stopwatch.start();
                 final ExtractResult extraction = extractOpt.get();
                 LuceneWrapper.tokenize(extraction, minTokenLength);
+                System.out.println("source file name: " + sourceFile.getName());
                 writer.write(
-                    IndexEntry.builder()
-                        .audio(sourceFile.getName().replaceAll("(?i)\\.pdf$", ".mp3"))
-                        .pdf(sourceFile.getName())
-                        .keywords(extraction.tokenString())
-                        .build());
+                    enhancer.enhance(
+                        IndexEntry.builder()
+                            .audio(sourceFile.getName().replaceAll("(?i)\\.pdf$", ".mp3"))
+                            .pdf(sourceFile.getName())
+                            .keywords(extraction.tokenString())
+                            .build()));
 
                 if (logger.isTraceEnabled()) {
                     logger.trace("Indexed {} in {} ms.", sourceFile.getAbsolutePath(), stopwatch.elapsed(TimeUnit.MILLISECONDS));

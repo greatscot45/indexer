@@ -5,7 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.PrintWriter;
-import java.io.Writer;
 import java.util.Optional;
 
 /**
@@ -29,6 +28,8 @@ public class IndexerCli {
     private static final String OPT_COMPRESS_LONG = "compress";
     private static final String OPT_PRETTY_PRINT = "p";
     private static final String OPT_PRETTY_PRINT_LONG = "pretty";
+    private static final String OPT_ENHANCE_FILE = "e";
+    private static final String OPT_ENHANCE_FILE_LONG = "enhancefile";
     private static final String OPT_HELP = "h";
     private static final String OPT_HELP_LONG = "help";
 
@@ -54,6 +55,7 @@ public class IndexerCli {
             final boolean prettyPrint = cli.hasOption(OPT_PRETTY_PRINT);
             final Optional<Integer> workers = optionalInteger(cli, OPT_WORKERS);
             final Optional<Integer> minTokenLength = optionalInteger(cli, OPT_MIN_TOKEN_LENGTH);
+            final Optional<String> enhancePath = Optional.ofNullable(cli.getOptionValue(OPT_ENHANCE_FILE));
 
             final IndexerArgs indexerArgs = IndexerArgs.builder()
                 .inputdirPaths(inputdirPaths)
@@ -64,9 +66,10 @@ public class IndexerCli {
                 .compress(compress)
                 .prettyPrint(prettyPrint)
                 .minTokenLength(minTokenLength)
+                .enhancePath(enhancePath)
                 .build();
 
-            LunrIndexer.with(indexerArgs).index();
+            Indexer.with(indexerArgs).index();
         } catch (ParseException e) {
             System.err.println("Failed to parse command line args: " + e.getMessage());
             printUsage(opts);
@@ -94,6 +97,12 @@ public class IndexerCli {
             .desc("Print usage help.")
             .longOpt(OPT_HELP_LONG)
             .required(false)
+            .build());
+        opts.addOption(Option.builder(OPT_ENHANCE_FILE)
+            .desc("A file containing content used to enhance the index.")
+            .longOpt(OPT_ENHANCE_FILE_LONG)
+            .required(false)
+            .hasArgs()
             .build());
         opts.addOption(Option.builder(OPT_INPUT_DIR)
             .desc("One or more input directories to scan for pdf files.")

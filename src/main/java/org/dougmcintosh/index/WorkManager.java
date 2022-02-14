@@ -3,7 +3,6 @@ package org.dougmcintosh.index;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ucar.ma2.Index;
 
 import java.io.Closeable;
 import java.io.File;
@@ -17,24 +16,23 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class WorkManager implements Closeable {
     private static final Logger logger = LoggerFactory.getLogger(WorkManager.class);
-    private ExecutorService threadPool;
-    private WorkerFactory workerFactory;
-    private AtomicBoolean failureDetected;
+    private final ExecutorService threadPool;
+    private final WorkerFactory workerFactory;
+    private final AtomicBoolean failureDetected;
 
     public WorkManager(int workers, WorkerFactory workerFactory) {
         Preconditions.checkState(workers >= 1, "Workers must be >= 1.");
         this.failureDetected = new AtomicBoolean(false);
         this.workerFactory = Preconditions.checkNotNull(workerFactory, "WorkerFactory is null.");
         this.threadPool = Executors.newFixedThreadPool(workers, new ThreadFactory() {
-            private AtomicInteger workerIdx = new AtomicInteger(0);
-            private Thread.UncaughtExceptionHandler exceptionHandler = new Thread.UncaughtExceptionHandler() {
+            private final AtomicInteger workerIdx = new AtomicInteger(0);
+            private final Thread.UncaughtExceptionHandler exceptionHandler = new Thread.UncaughtExceptionHandler() {
                 @Override
                 public void uncaughtException(Thread t, Throwable e) {
-                    failureDetected.set(true);
                     Metrics.failure();
+                    failureDetected.set(true);
 
-                    if (e instanceof IndexingException) {
-                        IndexingException ex = (IndexingException) e;
+                    if (e instanceof IndexingException ex) {
                         if (ex.getTarget() != null) {
                             logger.error("Uncaught exception while indexing {}", ex.getTarget().getAbsolutePath(), ex);
                             return;
@@ -67,7 +65,9 @@ public class WorkManager implements Closeable {
             logger.info("Awaiting thread pool shutdown.");
 
             try {
-                threadPool.awaitTermination(1l, TimeUnit.HOURS);
+                if (!threadPool.awaitTermination(1l, TimeUnit.HOURS)) {
+                    throw new IndexingException("Thread pool timed out before all workers completed.");
+                }
             } catch (InterruptedException e) {
                 logger.error("Thread pool interrupted while awaiting worker completion.", e);
                 Thread.currentThread().interrupt();
