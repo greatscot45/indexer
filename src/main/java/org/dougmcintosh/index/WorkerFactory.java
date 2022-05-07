@@ -2,13 +2,10 @@ package org.dougmcintosh.index;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Stopwatch;
-import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.FSDirectory;
 import org.dougmcintosh.index.extract.ExtractResult;
 import org.dougmcintosh.index.extract.tika.TikaExtractor;
 import org.dougmcintosh.index.lucene.CustomAnalyzer;
+import org.dougmcintosh.index.lucene.LuceneOutputWriter;
 import org.dougmcintosh.index.lunr.LunrOutputWriter;
 import org.dougmcintosh.util.SynchronizedOutputWriter;
 import org.slf4j.Logger;
@@ -17,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -37,13 +33,11 @@ public abstract class WorkerFactory implements Closeable {
     public abstract Worker newWorker(File sourceFile);
 
     public static class LuceneWorkerFactory extends WorkerFactory {
-        private final IndexWriter indexWriter;
+        private final LuceneOutputWriter luceneWriter;
 
         private LuceneWorkerFactory(IndexerArgs args) throws IOException {
             super(args);
-            IndexWriterConfig cfg = new IndexWriterConfig(CustomAnalyzer.from(args.getMinTokenLength()));
-            Directory index = FSDirectory.open(Paths.get(args.getOutputdir().toURI()));
-            this.indexWriter = new IndexWriter(index, cfg);
+            this.luceneWriter = new LuceneOutputWriter(args.getOutputdir(), args.getMinTokenLength());
         }
 
         @Override
@@ -58,7 +52,7 @@ public abstract class WorkerFactory implements Closeable {
     }
 
     public static class LunrWorkerFactory extends WorkerFactory {
-        private final SynchronizedOutputWriter lunrWriter;
+        private final LunrOutputWriter lunrWriter;
 
         private LunrWorkerFactory(IndexerArgs args) throws IOException {
             super(args);
