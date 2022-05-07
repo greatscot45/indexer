@@ -4,11 +4,12 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Stopwatch;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.store.ByteBuffersDirectory;
 import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.FSDirectory;
 import org.dougmcintosh.index.extract.ExtractResult;
-import org.dougmcintosh.index.extract.lucene.CustomAnalyzer;
 import org.dougmcintosh.index.extract.tika.TikaExtractor;
+import org.dougmcintosh.index.lucene.CustomAnalyzer;
+import org.dougmcintosh.index.lunr.LunrOutputWriter;
 import org.dougmcintosh.util.SynchronizedOutputWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -24,6 +26,7 @@ public abstract class WorkerFactory implements Closeable {
 
     private WorkerFactory(IndexerArgs args) {
         this.args = Preconditions.checkNotNull(args, "IndexerArgs cannot be null.");
+        CustomAnalyzer.initializeStopWords(args.getStopwordsFile());
     }
 
     public static WorkerFactory of(IndexerArgs args) throws IOException {
@@ -38,8 +41,8 @@ public abstract class WorkerFactory implements Closeable {
 
         private LuceneWorkerFactory(IndexerArgs args) throws IOException {
             super(args);
-            IndexWriterConfig cfg = new IndexWriterConfig(new CustomAnalyzer());
-            Directory index = new ByteBuffersDirectory();
+            IndexWriterConfig cfg = new IndexWriterConfig(CustomAnalyzer.from(args.getMinTokenLength()));
+            Directory index = FSDirectory.open(Paths.get(args.getOutputdir().toURI()));
             this.indexWriter = new IndexWriter(index, cfg);
         }
 
@@ -59,7 +62,7 @@ public abstract class WorkerFactory implements Closeable {
 
         private LunrWorkerFactory(IndexerArgs args) throws IOException {
             super(args);
-            this.lunrWriter = new SynchronizedOutputWriter(
+            this.lunrWriter = new LunrOutputWriter(
                 args.getOutputdir(), args.isCompressed(), args.isPrettyPrint());
         }
 
@@ -97,7 +100,8 @@ public abstract class WorkerFactory implements Closeable {
             if (extractOpt.isPresent()) {
                 stopwatch.start();
                 final ExtractResult extraction = extractOpt.get();
-                doRun(IndexEntry.builder()
+
+                processIndexEntry(IndexEntry.builder()
                     .audio(sourceFile.getName().replaceAll("(?i)\\.pdf$", ".mp3"))
                     .pdf(sourceFile.getName())
                     .keywords(extraction.tokenString())
@@ -110,7 +114,7 @@ public abstract class WorkerFactory implements Closeable {
             }
         }
 
-        protected abstract void doRun(IndexEntry extractOpt);
+        protected abstract void processIndexEntry(IndexEntry extractOpt);
     }
 
     private static class LuceneWorker extends Worker {
@@ -124,7 +128,7 @@ public abstract class WorkerFactory implements Closeable {
         }
 
         @Override
-        protected void doRun(IndexEntry extractOpt) {
+        protected void processIndexEntry(IndexEntry extractOpt) {
 
         }
     }
@@ -143,7 +147,7 @@ public abstract class WorkerFactory implements Closeable {
         }
 
         @Override
-        protected void doRun(IndexEntry entry) {
+        protected void processIndexEntry(IndexEntry entry) {
             writer.write(entry);
         }
     }

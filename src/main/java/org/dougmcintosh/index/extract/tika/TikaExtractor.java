@@ -8,7 +8,7 @@ import org.apache.tika.sax.BodyContentHandler;
 import org.dougmcintosh.index.IndexingException;
 import org.dougmcintosh.index.extract.ExtractResult;
 import org.dougmcintosh.index.extract.StaticPatternExtractFilter;
-import org.dougmcintosh.index.extract.lucene.LuceneWrapper;
+import org.dougmcintosh.index.lucene.CustomAnalyzer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
@@ -49,7 +49,7 @@ public final class TikaExtractor {
 
         if (optResult.isPresent()) {
             final ExtractResult extractResult = optResult.get();
-            extractResult.addTokens(LuceneWrapper.tokenize(sourceFile, extractResult.getText(), minTokenLength));
+            extractResult.addTokens(CustomAnalyzer.tokenize(sourceFile, extractResult.getText(), minTokenLength));
         }
 
         return optResult;

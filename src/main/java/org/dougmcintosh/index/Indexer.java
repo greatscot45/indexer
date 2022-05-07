@@ -3,7 +3,6 @@ package org.dougmcintosh.index;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Stopwatch;
 import org.dougmcintosh.index.crawl.Crawler;
-import org.dougmcintosh.index.extract.lucene.LuceneWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,8 +28,6 @@ public class Indexer {
     public void index() throws IOException {
         logger.info("Starting index.");
         stopwatch.start();
-
-        LuceneWrapper.initializeStopWords(args.getStopwordsFile());
 
         final WorkerFactory workerFactory = WorkerFactory.of(args);
 

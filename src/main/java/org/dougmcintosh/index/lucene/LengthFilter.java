@@ -1,4 +1,4 @@
-package org.dougmcintosh.index.extract.lucene;
+package org.dougmcintosh.index.lucene;
 
 import org.apache.lucene.analysis.FilteringTokenFilter;
 import org.apache.lucene.analysis.TokenStream;
