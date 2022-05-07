@@ -11,25 +11,25 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class WorkManager implements Closeable {
     private static final Logger logger = LoggerFactory.getLogger(WorkManager.class);
     private ExecutorService threadPool;
     private WorkerFactory workerFactory;
-    private AtomicBoolean failureDetected;
+    private AtomicLong failureCount;
 
     public WorkManager(int workers, WorkerFactory workerFactory) {
         Preconditions.checkState(workers >= 1, "Workers must be >= 1.");
-        this.failureDetected = new AtomicBoolean(false);
+        this.failureCount = new AtomicLong(0);
         this.workerFactory = Preconditions.checkNotNull(workerFactory, "WorkerFactory is null.");
         this.threadPool = Executors.newFixedThreadPool(workers, new ThreadFactory() {
             private AtomicInteger workerIdx = new AtomicInteger(0);
             private Thread.UncaughtExceptionHandler exceptionHandler = new Thread.UncaughtExceptionHandler() {
                 @Override
                 public void uncaughtException(Thread t, Throwable e) {
-                    failureDetected.set(true);
+                    failureCount.incrementAndGet();
                     Metrics.failure();
 
                     if (e instanceof IndexingException) {
@@ -75,8 +75,8 @@ public class WorkManager implements Closeable {
                 this.workerFactory.close();
             }
 
-            if (failureDetected.get()) {
-                throw new IndexingException("One or more worker threads failed. Check logs for details.");
+            if (failureCount.get() > 0) {
+                throw new IndexingException(failureCount.get() + " worker thread(s) failed. Check logs for details.");
             }
 
             logger.info("Thread pool shutdown complete.");

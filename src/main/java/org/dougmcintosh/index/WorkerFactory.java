@@ -47,7 +47,9 @@ public abstract class WorkerFactory implements Closeable {
 
         @Override
         public void close() throws IOException {
-
+            if (this.luceneWriter != null) {
+                luceneWriter.close();
+            }
         }
     }
 
@@ -97,7 +99,7 @@ public abstract class WorkerFactory implements Closeable {
 
                 processIndexEntry(IndexEntry.builder()
                     .audio(sourceFile.getName().replaceAll("(?i)\\.pdf$", ".mp3"))
-                    .pdf(sourceFile.getName())
+                    .pdf(sourceFile)
                     .keywords(extraction.tokenString())
                     .rawText(extraction.getText())
                     .build());
