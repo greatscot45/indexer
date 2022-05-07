@@ -5,7 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.PrintWriter;
-import java.io.Writer;
 import java.util.Optional;
 
 /**
@@ -29,6 +28,8 @@ public class IndexerCli {
     private static final String OPT_COMPRESS_LONG = "compress";
     private static final String OPT_PRETTY_PRINT = "p";
     private static final String OPT_PRETTY_PRINT_LONG = "pretty";
+    private static final String OPT_INDEX_TYPE = "x";
+    private static final String OPT_INDEX_TYPE_LONG = "indextype";
     private static final String OPT_HELP = "h";
     private static final String OPT_HELP_LONG = "help";
 
@@ -54,6 +55,7 @@ public class IndexerCli {
             final boolean prettyPrint = cli.hasOption(OPT_PRETTY_PRINT);
             final Optional<Integer> workers = optionalInteger(cli, OPT_WORKERS);
             final Optional<Integer> minTokenLength = optionalInteger(cli, OPT_MIN_TOKEN_LENGTH);
+            final String indexType = cli.getOptionValue(OPT_INDEX_TYPE);
 
             final IndexerArgs indexerArgs = IndexerArgs.builder()
                 .inputdirPaths(inputdirPaths)
@@ -64,9 +66,10 @@ public class IndexerCli {
                 .compress(compress)
                 .prettyPrint(prettyPrint)
                 .minTokenLength(minTokenLength)
+                .indexType(indexType)
                 .build();
 
-            LunrIndexer.with(indexerArgs).index();
+            Indexer.with(indexerArgs).index();
         } catch (ParseException e) {
             System.err.println("Failed to parse command line args: " + e.getMessage());
             printUsage(opts);
@@ -142,6 +145,12 @@ public class IndexerCli {
             .longOpt(OPT_PRETTY_PRINT_LONG)
             .hasArg(false)
             .required(false)
+            .build());
+        opts.addOption(Option.builder(OPT_INDEX_TYPE)
+            .desc("Index type. Either lucene or lunr.")
+            .longOpt(OPT_INDEX_TYPE_LONG)
+            .required()
+            .hasArg()
             .build());
         return opts;
     }

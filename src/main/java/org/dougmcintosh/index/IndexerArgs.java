@@ -23,6 +23,11 @@ public class IndexerArgs {
     private final int minTokenLength;
     private boolean compress;
     private boolean prettyPrint;
+    private final IndexType indexType;
+
+    enum IndexType {
+        LUCENE, LUNR
+    }
 
     private IndexerArgs(Set<String> inputDirPaths,
                         String outputdirPath,
@@ -30,6 +35,7 @@ public class IndexerArgs {
                         boolean recurse,
                         Optional<Integer> workers,
                         Optional<Integer> minTokenLength,
+                        IndexType indexType,
                         boolean compress,
                         boolean prettyPrint) {
         Preconditions.checkState(CollectionUtils.isNotEmpty(inputDirPaths), "Input dir paths is null/empty.");
@@ -44,6 +50,7 @@ public class IndexerArgs {
         this.compress = compress;
         this.prettyPrint = prettyPrint;
         this.workers = workers.orElse(DEFAULT_WORKERS);
+        this.indexType = Preconditions.checkNotNull(indexType, "Index type cannot be null.");
         Preconditions.checkState(this.workers >= 1, "Workers must be >= 1.");
     }
 
@@ -71,6 +78,10 @@ public class IndexerArgs {
 
     public static Builder builder() {
         return new Builder();
+    }
+
+    public IndexType getIndexType() {
+        return indexType;
     }
 
     public Set<File> getInputdirs() {
@@ -114,11 +125,20 @@ public class IndexerArgs {
         private Optional<Integer> minTokenLength = Optional.empty();
         private boolean compress = true;
         private boolean prettyPrint = false;
+        private IndexType indexType;
 
         public Builder inputdirPaths(String[] inputdirPaths) {
             if (ArrayUtils.isNotEmpty(inputdirPaths)) {
                 this.inputdirPaths = new LinkedHashSet<>(Arrays.asList(inputdirPaths));
             }
+            return this;
+        }
+
+        public Builder indexType(String indexType) {
+            Preconditions.checkState(StringUtils.isNotBlank(indexType),
+                "Index type cannot be blank. Must be one of %s.",
+                Arrays.stream(IndexType.values()).collect(Collectors.toSet()));
+            this.indexType = IndexType.valueOf(indexType.toUpperCase());
             return this;
         }
 
@@ -160,7 +180,7 @@ public class IndexerArgs {
         public IndexerArgs build() {
             return new IndexerArgs(
                 inputdirPaths, outputdirPath, stopwordsPath,
-                recurse, workers, minTokenLength, compress, prettyPrint);
+                recurse, workers, minTokenLength, indexType, compress, prettyPrint);
         }
     }
 }

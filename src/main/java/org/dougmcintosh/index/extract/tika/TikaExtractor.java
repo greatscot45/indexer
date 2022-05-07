@@ -8,6 +8,7 @@ import org.apache.tika.sax.BodyContentHandler;
 import org.dougmcintosh.index.IndexingException;
 import org.dougmcintosh.index.extract.ExtractResult;
 import org.dougmcintosh.index.extract.StaticPatternExtractFilter;
+import org.dougmcintosh.index.extract.lucene.LuceneWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
@@ -21,20 +22,34 @@ import java.util.Optional;
 public final class TikaExtractor {
     private static final Logger logger = LoggerFactory.getLogger(TikaExtractor.class);
 
-    public static Optional<ExtractResult> extract(File sourceFile) throws IndexingException {
+    public static Optional<ExtractResult> extract(File sourceFile)
+        throws IndexingException {
+
         Optional<ExtractResult> optResult = Optional.empty();
 
         try (final InputStream stream = new FileInputStream(sourceFile)) {
-            String rawText = extractRawText(stream);
+            final String rawText = extractRawText(stream);
 
             if (StringUtils.isNotBlank(rawText)) {
-                ExtractResult result = ExtractResult.of(sourceFile, rawText);
-                optResult = Optional.of(result);
+                return Optional.of(ExtractResult.of(sourceFile, rawText));
             } else {
                 logger.warn("No text extracted from file {}", sourceFile.getAbsolutePath());
             }
         } catch (Exception e) {
             throw new IndexingException(e, sourceFile);
+        }
+
+        return optResult;
+    }
+
+    public static Optional<ExtractResult> extractAndTokenize(File sourceFile, int minTokenLength)
+        throws IndexingException {
+
+        Optional<ExtractResult> optResult = extract(sourceFile);
+
+        if (optResult.isPresent()) {
+            final ExtractResult extractResult = optResult.get();
+            extractResult.addTokens(LuceneWrapper.tokenize(sourceFile, extractResult.getText(), minTokenLength));
         }
 
         return optResult;

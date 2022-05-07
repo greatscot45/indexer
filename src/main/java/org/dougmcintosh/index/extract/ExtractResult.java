@@ -5,6 +5,7 @@ import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -33,8 +34,8 @@ public final class ExtractResult {
         return sourceFile;
     }
 
-    public boolean addToken(String token) {
-        return this.tokens.add(token);
+    public boolean addTokens(Collection<String> tokens) {
+        return this.tokens.addAll(tokens);
     }
 
     public String tokenString() {

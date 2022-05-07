@@ -22,7 +22,7 @@ import java.util.zip.GZIPOutputStream;
 /**
  * Utility class providing for proper locking of a single writer via a {@link ReentrantLock}.
  */
-public class SynchronizedOutputWriter implements Closeable {
+public class SynchronizedOutputWriter implements AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(SynchronizedOutputWriter.class);
     private static final String TIME_PATTERN = "YYYYMMDDHHmmss";
     private final SequenceWriter sequenceWriter;

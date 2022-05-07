@@ -10,8 +10,8 @@ public class StaticPatternExtractFilterTest {
 //    @Test
 //    public void testExclude() throws Exception {
     public static void main(String... args) {
-        ExtractResult result = TikaExtractor.extract(new File(
-                "/Users/joncrater/dev/projects/mcintosh/indexer/build/pdf/1John06.pdf"))
+        ExtractResult result = TikaExtractor.extractAndTokenize(new File(
+                "/Users/joncrater/dev/projects/mcintosh/indexer/build/pdf/1John06.pdf"),3)
                 .orElseThrow(() -> new IllegalStateException("Extract result not present."));
 
         String text = result.getText();

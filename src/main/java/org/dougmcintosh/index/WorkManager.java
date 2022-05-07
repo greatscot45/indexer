@@ -3,7 +3,6 @@ package org.dougmcintosh.index;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ucar.ma2.Index;
 
 import java.io.Closeable;
 import java.io.File;
