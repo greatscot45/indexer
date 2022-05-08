@@ -1,6 +1,8 @@
 package org.dougmcintosh.index.lucene;
 
 import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
@@ -10,12 +12,9 @@ import org.dougmcintosh.index.IndexEntry;
 import org.dougmcintosh.index.IndexingException;
 import org.dougmcintosh.util.SynchronizedOutputWriter;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 
 public class LuceneOutputWriter extends SynchronizedOutputWriter {
@@ -33,10 +32,12 @@ public class LuceneOutputWriter extends SynchronizedOutputWriter {
     protected void doWrite(IndexEntry entry) throws IndexingException {
         try (final FileInputStream fis = new FileInputStream(entry.getPdf())) {
             final Document doc = new Document();
-//            doc.add(new TextField("contents", entry.getRawText(), Field.Store.NO));
-            doc.add(new TextField(
-                "contents",
-                new BufferedReader(new InputStreamReader(fis, StandardCharsets.UTF_8))));
+            doc.add(new StringField("pdf", entry.getPdf().getName(), Field.Store.YES));
+            doc.add(new StringField("audio", entry.getAudio(), Field.Store.YES));
+            doc.add(new TextField("contents", entry.getRawText(), Field.Store.NO));
+//            doc.add(new TextField(
+//                "contents",
+//                new BufferedReader(new InputStreamReader(fis, StandardCharsets.UTF_8))));
             indexWriter.addDocument(doc);
         } catch (IOException e) {
             throw new IndexingException("Error while writing index entry for " + entry, e);

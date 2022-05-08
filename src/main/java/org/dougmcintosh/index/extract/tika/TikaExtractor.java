@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 public final class TikaExtractor {
@@ -31,6 +32,10 @@ public final class TikaExtractor {
             final String rawText = extractRawText(stream);
 
             if (StringUtils.isNotBlank(rawText)) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Extracted " + rawText.getBytes(StandardCharsets.UTF_8).length +
+                        " bytes of text from " + sourceFile.getAbsolutePath());
+                }
                 return Optional.of(ExtractResult.of(sourceFile, rawText));
             } else {
                 logger.warn("No text extracted from file {}", sourceFile.getAbsolutePath());
