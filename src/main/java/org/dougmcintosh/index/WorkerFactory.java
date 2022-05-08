@@ -42,7 +42,7 @@ public abstract class WorkerFactory implements Closeable {
 
         @Override
         public Worker newWorker(File sourceFile) {
-            return new LuceneWorker(sourceFile);
+            return new LuceneWorker(luceneWriter, sourceFile);
         }
 
         @Override
@@ -77,10 +77,12 @@ public abstract class WorkerFactory implements Closeable {
 
     private abstract static class Worker implements Runnable {
         protected static final Logger logger = LoggerFactory.getLogger(Worker.class);
+        private final SynchronizedOutputWriter writer;
         protected final File sourceFile;
         protected final Stopwatch stopwatch;
 
-        Worker(File sourceFile) {
+        Worker(SynchronizedOutputWriter writer, File sourceFile) {
+            this.writer = Preconditions.checkNotNull(writer, "Output writer is null.");
             this.sourceFile = Preconditions.checkNotNull(sourceFile, "Source file is null.");
             this.stopwatch = Stopwatch.createUnstarted();
         }
@@ -97,7 +99,7 @@ public abstract class WorkerFactory implements Closeable {
                 stopwatch.start();
                 final ExtractResult extraction = extractOpt.get();
 
-                processIndexEntry(IndexEntry.builder()
+                writer.write(IndexEntry.builder()
                     .audio(sourceFile.getName().replaceAll("(?i)\\.pdf$", ".mp3"))
                     .pdf(sourceFile)
                     .keywords(extraction.tokenString())
@@ -109,42 +111,27 @@ public abstract class WorkerFactory implements Closeable {
                 }
             }
         }
-
-        protected abstract void processIndexEntry(IndexEntry extractOpt);
     }
 
     private static class LuceneWorker extends Worker {
-        LuceneWorker(File sourceFile) {
-            super(sourceFile);
+        LuceneWorker(LuceneOutputWriter luceneWriter, File sourceFile) {
+            super(luceneWriter, sourceFile);
         }
 
         @Override
         protected Optional<ExtractResult> extract() {
             return TikaExtractor.extract(sourceFile);
         }
-
-        @Override
-        protected void processIndexEntry(IndexEntry extractOpt) {
-
-        }
     }
 
     private class LunrWorker extends Worker {
-        private final SynchronizedOutputWriter writer;
-
         LunrWorker(SynchronizedOutputWriter writer, File sourceFile) {
-            super(sourceFile);
-            this.writer = Preconditions.checkNotNull(writer, "Writer is null.");
+            super(writer, sourceFile);
         }
 
         @Override
         protected Optional<ExtractResult> extract() {
             return TikaExtractor.extractAndTokenize(sourceFile, args.getMinTokenLength());
-        }
-
-        @Override
-        protected void processIndexEntry(IndexEntry entry) {
-            writer.write(entry);
         }
     }
 }
