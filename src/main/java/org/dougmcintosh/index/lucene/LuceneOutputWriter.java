@@ -34,7 +34,7 @@ public class LuceneOutputWriter extends SynchronizedOutputWriter {
             final Document doc = new Document();
             doc.add(new StringField("pdf", entry.getPdf().getName(), Field.Store.YES));
             doc.add(new StringField("audio", entry.getAudio(), Field.Store.YES));
-            doc.add(new TextField("contents", entry.getRawText(), Field.Store.NO));
+            doc.add(new TextField("contents", entry.getRawText(), Field.Store.YES));
 //            doc.add(new TextField(
 //                "contents",
 //                new BufferedReader(new InputStreamReader(fis, StandardCharsets.UTF_8))));
