@@ -55,7 +55,7 @@ public class CustomAnalyzer extends StopwordAnalyzerBase {
      * Initialize the shared stop words. This method must be called prior to tokenize().
      * @param stopwordsFile
      */
-    public static synchronized void initializeStopWords(File stopwordsFile) {
+    public static synchronized void initializeStopWords(final File stopwordsFile) {
         Preconditions.checkState(stopWords == null, "Stop words have already been initialized.");
 
         stopWords = new CharArraySet(16, true);

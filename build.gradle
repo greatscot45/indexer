@@ -3,11 +3,16 @@ plugins {
 	id 'java'
 	id 'distribution'
 	id 'application'
+	id 'maven-publish'
+	id 'com.palantir.git-version' version '0.15.0'
 }
 
 repositories {
 	mavenCentral()
 }
+
+group 'org.dougmcintosh'
+version gitVersion()
 
 dependencies {
 	implementation "org.apache.tika:tika-parsers:${tikaVersion}"
@@ -51,5 +56,13 @@ application {
 java {
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(16)
+	}
+}
+
+publishing {
+	publications {
+		defaultPkg(MavenPublication) {
+			from components.java
+		}
 	}
 }
