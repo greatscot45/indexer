@@ -13,11 +13,20 @@ import org.dougmcintosh.index.IndexingException;
 import org.dougmcintosh.util.SynchronizedOutputWriter;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Paths;
 
 public class LuceneOutputWriter extends SynchronizedOutputWriter {
+    public static final String FLD_CATEGORY = "category";
+    public static final String FLD_SUBCATEGORY = "subcategory";
+    public static final String FLD_SERIES_CODE = "seriesCode";
+    public static final String FLD_SERIES_TITLE = "seriesTitle";
+    public static final String FLD_SERMON_TITLE = "sermonTitle";
+    public static final String FLD_SERMON_DATE = "sermonDate";
+    public static final String FLD_SERMON_MANUSCRIPT = "sermonManuscript";
+    public static final String FLD_SERMON_AUDIO = "sermonAudio";
+    public static final String FLD_SERMON_PASSAGE = "sermonPassage";
+    public static final String FLD_SERMON_TEXT = "sermonText";
     private final IndexWriter indexWriter;
 
     public LuceneOutputWriter(File outputDir, int minTokenLength) throws IOException {
@@ -30,14 +39,22 @@ public class LuceneOutputWriter extends SynchronizedOutputWriter {
 
     @Override
     protected void doWrite(IndexEntry entry) throws IndexingException {
-        try (final FileInputStream fis = new FileInputStream(entry.getPdf())) {
-            final Document doc = new Document();
-            doc.add(new StringField("pdf", entry.getPdf().getName(), Field.Store.YES));
-            doc.add(new StringField("audio", entry.getAudio(), Field.Store.YES));
-            doc.add(new TextField("contents", entry.getRawText(), Field.Store.YES));
+        final Document doc = new Document();
+        doc.add(new StringField(FLD_CATEGORY, entry.getCategory(), Field.Store.YES));
+        doc.add(new StringField(FLD_SUBCATEGORY, entry.getSubCategory(), Field.Store.YES));
+        doc.add(new StringField(FLD_SERIES_CODE, entry.getSeriesCode(), Field.Store.YES));
+        doc.add(new StringField(FLD_SERIES_TITLE, entry.getSeriesTitle(), Field.Store.YES));
+        doc.add(new StringField(FLD_SERMON_TITLE, entry.getSermonTitle(), Field.Store.YES));
+        doc.add(new StringField(FLD_SERMON_DATE, entry.getSermonDate().toString(), Field.Store.YES));
+        doc.add(new StringField(FLD_SERMON_MANUSCRIPT, entry.getPdfRelativePath(), Field.Store.YES));
+        doc.add(new StringField(FLD_SERMON_AUDIO, entry.getAudio(), Field.Store.YES));
+        doc.add(new StringField(FLD_SERMON_PASSAGE, entry.getPassage(), Field.Store.YES));
+        doc.add(new TextField(FLD_SERMON_TEXT, entry.getRawText(), Field.Store.YES));
+
+        try {
             indexWriter.addDocument(doc);
         } catch (IOException e) {
-            throw new IndexingException("Error while writing index entry for " + entry, e);
+            throw new IndexingException(e);
         }
     }
 

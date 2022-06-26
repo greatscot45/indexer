@@ -29,6 +29,7 @@ public class Indexer {
         logger.info("Starting index.");
         stopwatch.start();
 
+        SermonMetadata.load(args.getSermonMetadataFile());
         final WorkerFactory workerFactory = WorkerFactory.of(args);
 
         try (final WorkManager workMgr = new WorkManager(args.getWorkers(), workerFactory)) {

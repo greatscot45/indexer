@@ -30,6 +30,8 @@ public class IndexerCli {
     private static final String OPT_PRETTY_PRINT_LONG = "pretty";
     private static final String OPT_INDEX_TYPE = "x";
     private static final String OPT_INDEX_TYPE_LONG = "indextype";
+    private static final String OPT_SERMON_METADATA_PATH = "m";
+    private static final String OPT_SERMON_METADATA_PATH_LONG = "metadata";
     private static final String OPT_HELP = "h";
     private static final String OPT_HELP_LONG = "help";
 
@@ -56,18 +58,20 @@ public class IndexerCli {
             final Optional<Integer> workers = optionalInteger(cli, OPT_WORKERS);
             final Optional<Integer> minTokenLength = optionalInteger(cli, OPT_MIN_TOKEN_LENGTH);
             final String indexType = cli.getOptionValue(OPT_INDEX_TYPE);
+            final String sermonMetadataPath = cli.getOptionValue(OPT_SERMON_METADATA_PATH);
 
             final IndexerArgs indexerArgs = IndexerArgs.builder()
-                .inputdirPaths(inputdirPaths)
-                .outputdirPath(outputdirPath)
-                .stopwordsPath(stopWordsPath)
-                .workers(workers)
-                .recurse(recurse)
-                .compress(compress)
-                .prettyPrint(prettyPrint)
-                .minTokenLength(minTokenLength)
-                .indexType(indexType)
-                .build();
+                    .inputdirPaths(inputdirPaths)
+                    .outputdirPath(outputdirPath)
+                    .stopwordsPath(stopWordsPath)
+                    .workers(workers)
+                    .recurse(recurse)
+                    .compress(compress)
+                    .prettyPrint(prettyPrint)
+                    .minTokenLength(minTokenLength)
+                    .indexType(indexType)
+                    .sermonMetadataPath(sermonMetadataPath)
+                    .build();
 
             Indexer.with(indexerArgs).index();
         } catch (ParseException e) {
@@ -94,64 +98,70 @@ public class IndexerCli {
     private static Options setupOptions() {
         Options opts = new Options();
         opts.addOption(Option.builder(OPT_HELP)
-            .desc("Print usage help.")
-            .longOpt(OPT_HELP_LONG)
-            .required(false)
-            .build());
+                .desc("Print usage help.")
+                .longOpt(OPT_HELP_LONG)
+                .required(false)
+                .build());
         opts.addOption(Option.builder(OPT_INPUT_DIR)
-            .desc("One or more input directories to scan for pdf files.")
-            .longOpt(OPT_INPUT_DIR_LONG)
-            .required()
-            .hasArgs()
-            .build());
+                .desc("One or more input directories to scan for pdf files.")
+                .longOpt(OPT_INPUT_DIR_LONG)
+                .required()
+                .hasArgs()
+                .build());
         opts.addOption(Option.builder(OPT_OUTPUT_DIR)
-            .desc("Output directory (must exist) where index will be written.")
-            .longOpt(OPT_OUTPUT_DIR_LONG)
-            .required()
-            .hasArg()
-            .build());
+                .desc("Output directory (must exist) where index will be written.")
+                .longOpt(OPT_OUTPUT_DIR_LONG)
+                .required()
+                .hasArg()
+                .build());
         opts.addOption(Option.builder(OPT_STOP_WORDS_PATH)
-            .desc("Path to file containing stop words, one per line. Any word in this file will be ignored for indexing.")
-            .longOpt(OPT_STOP_WORDS_PATH_LONG)
-            .required(false)
-            .hasArg()
-            .build());
+                .desc("Path to file containing stop words, one per line. Any word in this file will be ignored for indexing.")
+                .longOpt(OPT_STOP_WORDS_PATH_LONG)
+                .required(false)
+                .hasArg()
+                .build());
         opts.addOption(Option.builder(OPT_RECURSE)
-            .desc("Recursively process provided directory.")
-            .longOpt(OPT_RECURSE_LONG)
-            .hasArg(false)
-            .required(false)
-            .build());
+                .desc("Recursively process provided directory.")
+                .longOpt(OPT_RECURSE_LONG)
+                .hasArg(false)
+                .required(false)
+                .build());
         opts.addOption(Option.builder(OPT_WORKERS)
-            .desc("Number of worker threads that will consume files from the work queue.")
-            .longOpt(OPT_WORKERS_LONG)
-            .required(false)
-            .hasArg()
-            .build());
+                .desc("Number of worker threads that will consume files from the work queue.")
+                .longOpt(OPT_WORKERS_LONG)
+                .required(false)
+                .hasArg()
+                .build());
         opts.addOption(Option.builder(OPT_MIN_TOKEN_LENGTH)
-            .desc("Minimum number of characters required for a keyword to be indexed.")
-            .longOpt(OPT_MIN_TOKEN_LENGTH_LONG)
-            .required(false)
-            .hasArg()
-            .build());
+                .desc("Minimum number of characters required for a keyword to be indexed.")
+                .longOpt(OPT_MIN_TOKEN_LENGTH_LONG)
+                .required(false)
+                .hasArg()
+                .build());
         opts.addOption(Option.builder(OPT_COMPRESS)
-            .desc("gzip compress generated index.")
-            .longOpt(OPT_COMPRESS_LONG)
-            .hasArg(false)
-            .required(false)
-            .build());
+                .desc("gzip compress generated index.")
+                .longOpt(OPT_COMPRESS_LONG)
+                .hasArg(false)
+                .required(false)
+                .build());
         opts.addOption(Option.builder(OPT_PRETTY_PRINT)
-            .desc("Pretty print generated json index.")
-            .longOpt(OPT_PRETTY_PRINT_LONG)
-            .hasArg(false)
-            .required(false)
-            .build());
+                .desc("Pretty print generated json index.")
+                .longOpt(OPT_PRETTY_PRINT_LONG)
+                .hasArg(false)
+                .required(false)
+                .build());
         opts.addOption(Option.builder(OPT_INDEX_TYPE)
-            .desc("Index type. Either lucene or lunr.")
-            .longOpt(OPT_INDEX_TYPE_LONG)
-            .required()
-            .hasArg()
-            .build());
+                .desc("Index type. Either lucene or lunr.")
+                .longOpt(OPT_INDEX_TYPE_LONG)
+                .required()
+                .hasArg()
+                .build());
+        opts.addOption(Option.builder(OPT_SERMON_METADATA_PATH)
+                .desc("Path to the sermon metadata json file.")
+                .longOpt(OPT_SERMON_METADATA_PATH_LONG)
+                .required()
+                .hasArg()
+                .build());
         return opts;
     }
 

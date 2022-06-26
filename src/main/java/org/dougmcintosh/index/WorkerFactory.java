@@ -98,13 +98,13 @@ public abstract class WorkerFactory implements Closeable {
             if (extractOpt.isPresent()) {
                 stopwatch.start();
                 final ExtractResult extraction = extractOpt.get();
+                final IndexEntry.Builder entryBldr = SermonMetadata.entryBuilderForManuscript(sourceFile);
 
-                writer.write(IndexEntry.builder()
-                    .audio(sourceFile.getName().replaceAll("(?i)\\.pdf$", ".mp3"))
-                    .pdf(sourceFile)
-                    .keywords(extraction.tokenString())
-                    .rawText(extraction.getText())
-                    .build());
+                writer.write(
+                    entryBldr.pdfFile(sourceFile)
+                        .keywords(extraction.tokenString())
+                        .rawText(extraction.getText())
+                        .build());
 
                 if (logger.isTraceEnabled()) {
                     logger.trace("Indexed {} in {} ms.", sourceFile.getAbsolutePath(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
