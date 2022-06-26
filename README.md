@@ -2,7 +2,7 @@
 
 This cli crawls a given set of input directories (recursively if `-r|--recurse` is provided), extracts the text from any PDF files found and, depending upon the value of the `-x|--indextype` flag, generates either a lunrjs (https://lunrjs.com/) or Apache Lucene (https://lucene.apache.org/) index containing an entry for each PDF file encountered. The index entry will contain any keywords not found in the optional stopwords file provided by the `-s|--stopwords` option. If no stopwords file is provided, the default Lucene stopwords will be used. See full list of options below.
 
-Both supported index types are written to the directory provided by the `-o|--outputdir` flag. The Lucene index is written in a binary form. The lunrjs index is JSON and takes this form:
+Both supported index types are written to the directory provided by the `-o|--outputdir` flag. The Lucene index is written in the standard binary form. The lunrjs index is JSON and takes this form:
 
 ```
 [
@@ -44,6 +44,7 @@ usage: java -cp <classpath> org.dougmcintosh.index.IndexerCli <options>
                              will be ignored for indexing.
  -w,--workers <arg>          Number of worker threads that will consume files from the work queue.
  -x,--indextype <arg>        Index type. Either lucene or lunr.
+ -m,--metadata <arg>         Path to a sermon metadata file that will be indexed with the manuscripts.
  ```
  
 ## Logging
