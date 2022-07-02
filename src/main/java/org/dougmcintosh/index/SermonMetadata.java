@@ -108,15 +108,15 @@ public class SermonMetadata {
         Preconditions.checkState(sermons.isArray(), "sermons node is not an array.");
         sermons.forEach(sermon -> {
             final JsonNode pdfNode = sermon.get("pdf");
-            final String pdf = pdfNode == null ? "null manuscript" : pdfNode.asText();
+            final String pdf = pdfNode == null ? "" : pdfNode.asText();
             final JsonNode audioNode = sermon.get("audio");
-            final String audio = audioNode == null ? "null audio" : audioNode.asText();
+            final String audio = audioNode == null ? "" : audioNode.asText();
             final JsonNode titleNode = sermon.get("title");
-            final String title = titleNode == null ? "null title" : titleNode.asText();
+            final String title = titleNode == null ? "" : titleNode.asText();
             final JsonNode dateNode = sermon.get("date");
-            final String date = dateNode == null ? "null date" : dateNode.asText();
+            final String date = dateNode == null ? "" : dateNode.asText();
             final JsonNode passageNode = sermon.get("passage");
-            final String passage = passageNode == null ? "null passage" : passageNode.asText();
+            final String passage = passageNode == null ? "" : passageNode.asText();
 
             if (pdfNode != null) {
                 logger.debug(categoryName + "/" + subcategoryName + "/" + seriesCode + "/" + seriesTitle + "/" +
