@@ -64,7 +64,7 @@ Java 16 is required to build and run this project. https://openjdk.java.net/proj
 Run in place without building a tarball by executing `./gradlew run --args='[args]'` from the project root. For example:
 
 ```
-./gradlew run --args='--pretty --recurse --compress --workers 4 --inputdir /Users/jon/dev/projects/mcintosh/www/pdf --outputdir /Users/jon/dev/projects/mcintosh/indexer/build --stopwordsfile /Users/jon/dev/projects/mcintosh/indexer/var/conf/stopwords.txt'
+./gradlew run --args='--pretty --recurse --compress --workers 4 --inputdir /Users/jon/dev/projects/mcintosh/www/pdf --outputdir /Users/jon/dev/projects/mcintosh/indexer/build --stopwordsfile /Users/jon/dev/projects/mcintosh/indexer/var/conf/stopwords.txt -x lucene -m /Users/jon/dev/projects/mcintosh/site-v1/src/data/allSermonData.json'
 ```
 
 ### From Extracted Distribution

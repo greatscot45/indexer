@@ -15,6 +15,7 @@ import org.dougmcintosh.util.SynchronizedOutputWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 
 public class LuceneOutputWriter extends SynchronizedOutputWriter {
     public static final String FLD_CATEGORY = "category";
@@ -45,11 +46,17 @@ public class LuceneOutputWriter extends SynchronizedOutputWriter {
         doc.add(new StringField(FLD_SERIES_CODE, entry.getSeriesCode(), Field.Store.YES));
         doc.add(new StringField(FLD_SERIES_TITLE, entry.getSeriesTitle(), Field.Store.YES));
         doc.add(new StringField(FLD_SERMON_TITLE, entry.getSermonTitle(), Field.Store.YES));
-        doc.add(new StringField(FLD_SERMON_DATE, entry.getSermonDate().toString(), Field.Store.YES));
         doc.add(new StringField(FLD_SERMON_MANUSCRIPT, entry.getPdfRelativePath(), Field.Store.YES));
         doc.add(new StringField(FLD_SERMON_AUDIO, entry.getAudio(), Field.Store.YES));
         doc.add(new StringField(FLD_SERMON_PASSAGE, entry.getPassage(), Field.Store.YES));
         doc.add(new TextField(FLD_SERMON_TEXT, entry.getRawText(), Field.Store.YES));
+
+        final LocalDate sermonDate = entry.getSermonDate();
+        if (sermonDate != null) {
+            doc.add(new StringField(FLD_SERMON_DATE, sermonDate.toString(), Field.Store.YES));
+        } else {
+            doc.add(new StringField(FLD_SERMON_DATE, "1970-01-01", Field.Store.YES));
+        }
 
         try {
             indexWriter.addDocument(doc);

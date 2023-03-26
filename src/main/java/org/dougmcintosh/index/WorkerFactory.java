@@ -91,7 +91,8 @@ public abstract class WorkerFactory implements Closeable {
 
         @Override
         public void run() {
-            logger.info("Processing source file {}", sourceFile.getAbsolutePath());
+            final String path = sourceFile.getAbsolutePath();
+            logger.info("Processing source file {}", path);
 
             Optional<ExtractResult> extractOpt = extract();
 
@@ -100,14 +101,18 @@ public abstract class WorkerFactory implements Closeable {
                 final ExtractResult extraction = extractOpt.get();
                 final IndexEntry.Builder entryBldr = SermonMetadata.entryBuilderForManuscript(sourceFile);
 
-                writer.write(
-                    entryBldr.pdfFile(sourceFile)
-                        .keywords(extraction.tokenString())
-                        .rawText(extraction.getText())
-                        .build());
+                if (entryBldr != null) {
+                    writer.write(
+                        entryBldr.pdfFile(sourceFile)
+                            .keywords(extraction.tokenString())
+                            .rawText(extraction.getText())
+                            .build());
 
-                if (logger.isTraceEnabled()) {
-                    logger.trace("Indexed {} in {} ms.", sourceFile.getAbsolutePath(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
+                    if (logger.isTraceEnabled()) {
+                        logger.trace("Indexed {} in {} ms.", sourceFile.getAbsolutePath(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
+                    }
+                } else {
+                    logger.error("No index entry was built for file {}.", path);
                 }
             }
         }
